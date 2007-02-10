@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package com.google.inject.intercept;
+package com.google.inject;
 
-import static com.google.inject.intercept.Queries.*;
-import com.google.inject.ContainerBuilder;
-import com.google.inject.Container;
-import com.google.inject.ContainerCreationException;
-import com.google.inject.Key;
+import static com.google.inject.query.Queries.any;
 
 import junit.framework.TestCase;
 
@@ -34,12 +30,10 @@ public class IntegrationTest extends TestCase {
 
   public void testIntegration() throws ContainerCreationException {
     CountingInterceptor counter = new CountingInterceptor();
-    ProxyFactoryBuilder proxyFactoryBuilder = new ProxyFactoryBuilder();
-    proxyFactoryBuilder.intercept(any(), any(), counter);
-    ProxyFactory proxyFactory = proxyFactoryBuilder.create();
 
-    ContainerBuilder containerBuilder = new ContainerBuilder(proxyFactory);
+    ContainerBuilder containerBuilder = new ContainerBuilder();
     containerBuilder.bind(Foo.class);
+    containerBuilder.intercept(any(), any(), counter);
     Container container = containerBuilder.create(false);
 
     Foo foo = container.getFactory(Key.get(Foo.class)).get();

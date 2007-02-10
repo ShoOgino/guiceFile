@@ -14,11 +14,20 @@
  * limitations under the License.
  */
 
-/**
- * A simple and very efficient AOP Alliance-based interception framework for
- * Guice. To use with Guice, create a
- * {@link com.google.inject.intercept.ProxyFactory} and pass it to
- * {@link com.google.inject.ContainerBuilder}.
- */
+package com.google.inject;
 
-package com.google.inject.intercept;
+import java.lang.reflect.InvocationTargetException;
+
+/**
+ * Proxies calls to a {@link java.lang.reflect.Constructor} for a class
+ * {@code T}.
+ *
+ * @author crazybob@google.com (Bob Lee)
+ */
+interface ConstructionProxy<T> {
+
+  /**
+   * Constructs an instance of {@code T} for the given arguments.
+   */
+  T newInstance(Object... arguments) throws InvocationTargetException;
+}

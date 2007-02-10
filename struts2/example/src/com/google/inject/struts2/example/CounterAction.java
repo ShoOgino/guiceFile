@@ -14,20 +14,26 @@
  * limitations under the License.
  */
 
-package com.google.inject.spi;
+package com.google.inject.struts2.example;
 
-import java.lang.reflect.InvocationTargetException;
+import com.google.inject.Inject;
 
-/**
- * Proxies calls to a {@link java.lang.reflect.Constructor} for a class
- * {@code T}.
- *
- * @author crazybob@google.com (Bob Lee)
- */
-public interface ConstructionProxy<T> {
+import static com.opensymphony.xwork2.Action.SUCCESS;
 
-  /**
-   * Constructs an instance of {@code T} for the given arguments.
-   */
-  T newInstance(Object... arguments) throws InvocationTargetException;
+public class CounterAction {
+
+  final Counter counter;
+
+  @Inject
+  public CounterAction(Counter counter) {
+    this.counter = counter;
+  }
+
+  public String execute() {
+    return SUCCESS;
+  }
+
+  public int getCount() {
+    return counter.increment();
+  }
 }

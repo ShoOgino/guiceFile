@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.google.inject.spi;
+package com.google.inject;
+
+import com.google.inject.util.GuiceFastClass;
 
 import net.sf.cglib.reflect.FastClass;
 import net.sf.cglib.reflect.FastConstructor;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-
-import com.google.inject.util.GuiceFastClass;
 
 /**
  * Default {@link ConstructionProxyFactory} implementation. Simply invokes the
@@ -31,7 +31,7 @@ import com.google.inject.util.GuiceFastClass;
  *
  * @author crazybob@google.com (Bob Lee)
  */
-public class DefaultConstructionProxyFactory
+class DefaultConstructionProxyFactory
     implements ConstructionProxyFactory {
 
   public <T> ConstructionProxy<T> get(Constructor<T> constructor) {

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.google.inject.intercept;
+package com.google.inject;
 
-import com.google.inject.spi.ConstructionProxy;
-import static com.google.inject.intercept.Queries.*;
+import com.google.inject.ConstructionProxy;
+import static com.google.inject.query.Queries.*;
 import com.google.inject.Factory;
 
 import junit.framework.TestCase;

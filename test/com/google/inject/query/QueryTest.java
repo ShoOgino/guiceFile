@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.google.inject.intercept;
+package com.google.inject.query;
 
-import static com.google.inject.intercept.Queries.*;
+import static com.google.inject.query.Queries.*;
 
 import junit.framework.TestCase;
 

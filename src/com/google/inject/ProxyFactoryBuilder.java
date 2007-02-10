@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package com.google.inject.intercept;
+package com.google.inject;
+
+import com.google.inject.query.Query;
 
 import org.aopalliance.intercept.MethodInterceptor;
 
@@ -27,7 +29,7 @@ import java.lang.reflect.Method;
  *
  * @author crazybob@google.com (Bob Lee)
  */
-public class ProxyFactoryBuilder {
+class ProxyFactoryBuilder {
 
   final List<MethodAspect> methodAspects = new ArrayList<MethodAspect>();
 

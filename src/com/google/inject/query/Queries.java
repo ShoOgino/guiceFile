@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.inject.intercept;
+package com.google.inject.query;
 
 import com.google.inject.util.Objects;
 

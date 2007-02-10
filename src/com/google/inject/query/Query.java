@@ -14,19 +14,30 @@
  * limitations under the License.
  */
 
-package com.google.inject.spi;
-
-import java.lang.reflect.Constructor;
+package com.google.inject.query;
 
 /**
- * Creates {@link ConstructionProxy} instances.
+ * Returns {@code true} or {@code false} for a given input.
  *
  * @author crazybob@google.com (Bob Lee)
  */
-public interface ConstructionProxyFactory {
+public interface Query<T> {
 
   /**
-   * Gets a construction proxy for the given constructor.
+   * Returns {@code true} if this query matches {@code t}, {@code false}
+   * otherwise.
    */
-  <T> ConstructionProxy<T> get(Constructor<T> constructor);
+  boolean matches(T t);
+
+  /**
+   * Returns a query which returns {@code true} if both this and the given
+   * query return {@code true}.
+   */
+  Query<T> and(Query<? super T> other);
+
+  /**
+   * Returns a query which returns {@code true} if either this or the given
+   * query return {@code true}.
+   */
+  Query<T> or(Query<? super T> other);
 }

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.google.inject.intercept;
+package com.google.inject;
 
 import com.google.inject.util.Objects;
+import com.google.inject.query.Query;
 
 import org.aopalliance.intercept.MethodInterceptor;
 
