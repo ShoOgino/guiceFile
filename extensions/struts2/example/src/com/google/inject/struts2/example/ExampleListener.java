@@ -16,29 +16,36 @@
 
 package com.google.inject.struts2.example;
 
+import org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter;
+
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.inject.servlet.ServletModule;
-import org.apache.struts2.dispatcher.FilterDispatcher;
+import com.google.inject.struts2.Struts2GuicePluginModule;
 
 /**
  * Example application module.
  *
  * @author crazybob@google.com (Bob Lee)
  */
-public class ExampleListenerAndModule extends GuiceServletContextListener {
+public class ExampleListener extends GuiceServletContextListener {
 
-  protected Injector getInjector() {
-    return Guice.createInjector(new ServletModule() {
-      @Override
-      protected void configureServlets() {
-        bind(Service.class).to(ServiceImpl.class);
+  public Injector getInjector() {
+    return Guice.createInjector(
+      new Struts2GuicePluginModule(),
+      new ServletModule() {
+        @Override
+        protected void configureServlets() {      
+          // Struts 2 setup
+          bind(StrutsPrepareAndExecuteFilter.class).in(Singleton.class);
+          filter("/*").through(StrutsPrepareAndExecuteFilter.class);
 
-        bind(FilterDispatcher.class).in(Singleton.class);
-        filter("/*").through(org.apache.struts2.dispatcher.FilterDispatcher.class);
+          // Our app-specific code
+          bind(Service.class).to(ServiceImpl.class);
       }
     });
   }
+
 }

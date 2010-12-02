@@ -14,19 +14,8 @@
  * limitations under the License.
  */
 
-package com.google.inject.servlet;
+package com.google.inject.struts2;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Binder;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.internal.Annotations;
-import com.opensymphony.xwork2.ActionInvocation;
-import com.opensymphony.xwork2.ObjectFactory;
-import com.opensymphony.xwork2.config.ConfigurationException;
-import com.opensymphony.xwork2.config.entities.InterceptorConfig;
-import com.opensymphony.xwork2.inject.Inject;
-import com.opensymphony.xwork2.interceptor.Interceptor;
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -35,25 +24,36 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
+import com.google.inject.Injector;
+import com.google.inject.internal.Annotations;
+import com.opensymphony.xwork2.ActionInvocation;
+import com.opensymphony.xwork2.ObjectFactory;
+import com.opensymphony.xwork2.config.ConfigurationException;
+import com.opensymphony.xwork2.config.entities.InterceptorConfig;
+import com.opensymphony.xwork2.inject.Inject;
+import com.opensymphony.xwork2.interceptor.Interceptor;
+
 /**
  * Cleanup up version from Bob's GuiceObjectFactory. Now works properly with
  * GS2 and fixes several bugs.
  *
  * @author dhanji@gmail.com
+ * @author benmccann.com
  */
 public class Struts2Factory extends ObjectFactory {
 
-  static final Logger logger =
-      Logger.getLogger(Struts2Factory.class.getName());
-
-  Module module;
-  volatile Injector strutsInjector;
-  boolean developmentMode = false;
-  List<ProvidedInterceptor> interceptors
-      = new ArrayList<ProvidedInterceptor>();
+  private static final long serialVersionUID = 1L;
+  private static final Logger logger = Logger.getLogger(Struts2FactoryTest.class.getName());
   private static final String ERROR_NO_INJECTOR =
-      "Cannot find a Guice injector in the servlet context. Are you"
-          + " sure you registered GuiceServletContextListener in your application's web.xml?";
+      "Cannot find a Guice injector.  Are you sure you registered a GuiceServletContextListener "
+    + "that uses the Struts2GuicePluginModule in your application's web.xml?";
+
+  private static @com.google.inject.Inject Injector injector;
+
+  private final List<ProvidedInterceptor> interceptors = new ArrayList<ProvidedInterceptor>();
+  private volatile Injector strutsInjector;
 
   @Override
   public boolean isNoArgConstructorRequired() {
@@ -62,25 +62,14 @@ public class Struts2Factory extends ObjectFactory {
 
   @Inject(value = "guice.module", required = false)
   void setModule(String moduleClassName) {
-    try {
-      // Instantiate user's module.
-      @SuppressWarnings({"unchecked"})
-      Class<? extends Module> moduleClass =
-          (Class<? extends Module>) Class.forName(moduleClassName);
-      this.module = moduleClass.newInstance();
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  @Inject(value = "struts.devMode", required = false)
-  void setDevelopmentMode(String developmentMode) {
-    this.developmentMode = "true".equals(developmentMode.trim());
+    throw new RuntimeException("The struts2 plugin no longer supports"
+        + " specifying a module via the 'guice.module' property in XML."
+        + " Please install your module via a GuiceServletContextListener instead.");
   }
 
   Set<Class<?>> boundClasses = new HashSet<Class<?>>();
 
-  public Class getClassInstance(String name) throws ClassNotFoundException {
+  public Class<?> getClassInstance(String name) throws ClassNotFoundException {
     Class<?> clazz = super.getClassInstance(name);
 
     synchronized (this) {
@@ -107,8 +96,8 @@ public class Struts2Factory extends ObjectFactory {
     return clazz;
   }
 
-  @SuppressWarnings("unchecked")
-  public Object buildBean(Class clazz, Map extraContext) {
+  @Override @SuppressWarnings("unchecked")
+  public Object buildBean(Class clazz, Map<String, Object> extraContext) {
     if (strutsInjector == null) {
       synchronized (this) {
         if (strutsInjector == null) {
@@ -116,28 +105,17 @@ public class Struts2Factory extends ObjectFactory {
         }
       }
     }
-
     return strutsInjector.getInstance(clazz);
   }
 
   private void createInjector() {
     logger.info("Loading struts2 Guice support...");
 
-    // Attach to parent Guice injector from GS2.
-    Injector injector = (Injector) GuiceFilter.getServletContext()
-        .getAttribute(GuiceServletContextListener.INJECTOR_NAME);
-
     // Something is wrong, since this should be there if GuiceServletContextListener
     // was present.
-    if (null == injector) {
+    if (injector == null) {
       logger.severe(ERROR_NO_INJECTOR);
       throw new RuntimeException(ERROR_NO_INJECTOR);
-    }
-
-    if (module != null) {
-      throw new RuntimeException("The struts2 plugin no longer supports specifying a module"
-          + "via the 'guice.module' property in XML."
-          + " Please install your module via a GuiceServletContextListener instead.");
     }
 
     this.strutsInjector = injector.createChildInjector(new AbstractModule() {
@@ -171,7 +149,8 @@ public class Struts2Factory extends ObjectFactory {
     // Ensure the interceptor class is present.
     Class<? extends Interceptor> interceptorClass;
     try {
-      interceptorClass = getClassInstance(interceptorConfig.getClassName());
+      interceptorClass = (Class<? extends Interceptor>)
+          getClassInstance(interceptorConfig.getClassName());
     } catch (ClassNotFoundException e) {
       throw new RuntimeException(e);
     }
@@ -182,19 +161,21 @@ public class Struts2Factory extends ObjectFactory {
     return providedInterceptor;
   }
 
-  Interceptor superBuildInterceptor(InterceptorConfig interceptorConfig,
-      Map interceptorRefParams) throws ConfigurationException {
+  private Interceptor superBuildInterceptor(InterceptorConfig interceptorConfig,
+      Map<String, String> interceptorRefParams) throws ConfigurationException {
     return super.buildInterceptor(interceptorConfig, interceptorRefParams);
   }
 
-  class ProvidedInterceptor implements Interceptor {
+  private class ProvidedInterceptor implements Interceptor {
 
-    final InterceptorConfig config;
-    final Map params;
-    final Class<? extends Interceptor> interceptorClass;
-    Interceptor delegate;
+    private static final long serialVersionUID = 1L;
 
-    ProvidedInterceptor(InterceptorConfig config, Map params,
+    private final InterceptorConfig config;
+    private final Map<String, String> params;
+    private final Class<? extends Interceptor> interceptorClass;
+    private Interceptor delegate;
+
+    ProvidedInterceptor(InterceptorConfig config, Map<String, String> params,
         Class<? extends Interceptor> interceptorClass) {
       this.config = config;
       this.params = params;
